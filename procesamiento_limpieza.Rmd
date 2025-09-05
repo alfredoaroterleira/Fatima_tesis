@@ -1,0 +1,196 @@
+---
+title: "Procesamiento y limpieza de data"
+author: "Alfredo Aro Terleira"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::robobook:
+    highlight: kate
+---
+
+# 1. Instalación de paquetes
+
+```{r}
+#install.packages("haven")
+#install.packages("dplyr")
+#install.packages("openxlsx")
+```
+
+## 1.1. Cargamos los paquetes
+
+```{r message=FALSE, warning=FALSE}
+library(haven)
+library(dplyr)
+library(openxlsx)
+```
+
+
+# 2. Introducimos la data
+```{r}
+lapop2014 <- read_dta("LAPOP_2014.dta")
+lapop2019 <- read_dta("LAPOP_2018_2019.dta")
+```
+
+# 3. Limpieza de la data
+
+Para el presente trabajo emplearemos las siguientes variables de ambas datas:
+
+
+- **aoj22**: ¿En su opinión, qué hay que hacer para reducir la criminalidad en un país como el nuestro: implementar medidas de prevención o aumentar los castigos a los delincuentes?
+   - (1) Implementar medidas de prevención
+   - (2) Aumentar los castigos en contra de los delincuentes
+   - (3) Ambas
+   - (88) No sabe
+   - (98) No responde
+- **uniq_id**: identificador único del encuestado
+- **q1**: sexo
+   - (1) Hombre
+   - (2) Mujer
+- **q2**: edad
+- **l1**: En una escala del 1 al 10 que va de izquierda a derecha, en la que el 1 significa izquierda y el 10 significa derecha, según el sentido que tengan para usted ambos términos cuando piensa sobre su punto de vista político, ¿dónde se encontraría usted en esta escala?
+- **vic1ext**: ¿Ha sido usted víctima de algún acto de delincuencia en los últimos 12 meses? Es decir, ¿ha sido usted víctima de un robo, hurto, agresión, fraude, chantaje, extorsión, amenazas o algún otro tipo de acto delincuencial en los últimos 12 meses?
+   - (1) Sí
+   - (2) No
+   - (8) No sabe
+   - (9) No responde
+- **q3c**: religión [2014] y **q3cn**: religión [2018-2019]
+   - (1) Católico
+   - (2) Protestante, Protestante Tradicional o Protestante no Evangélico (Cristiano, Calvinista; Luterano; Metodista; Presbiteriano; Discípulo de Cristo; Anglicano; Episcopaliano; Iglesia Morava).  
+   - (03) Religiones Orientales no Cristianas (Islam; Budista; Hinduista; Taoísta; Confucianismo; Baha’i).  
+   - (04) Ninguna (Cree en un Ser Superior pero no pertenece a ninguna religión) 
+   - (05) Evangélica y Pentecostal (Evangélico, Pentecostal; Iglesia de Dios; Asambleas de Dios; Iglesia Universal del Reino de Dios; Iglesia Cuadrangular; Iglesia de Cristo; Congregación Cristiana; Menonita; Hermanos de Cristo; Iglesia Cristiana Reformada; Carismático no Católico; Luz del Mundo; Bautista; Iglesia del Nazareno; Ejército de Salvación; Adventista; Adventista del Séptimo Día, Sara Nossa Terra).  
+   - (06) Iglesia de los Santos de los Últimos Días (Mormones). 
+   - (07) Religiones Tradicionales (Candomblé, Vudú, Rastafari, Religiones Mayas, Umbanda; MaríaLonza; Inti, Kardecista, Santo Daime, Esoterica).  
+   - (10) Judío (Ortodoxo, Conservador o Reformado) 
+   - (11) Agnóstico o ateo (no cree en Dios) 
+   - (12) Testigos de Jehová. 
+   - (88) No sabe
+   - (98) No responde
+   
+
+## LAPOP 2014
+```{r}
+lapop2014 <- lapop2014 %>%
+  select(uniq_id, aoj22, q1, q2, l1, vic1ext, q3c)
+```
+
+```{r}
+lapop2014 <- lapop2014 %>%
+  rename(
+    ID = uniq_id,
+    PUNITIVO = aoj22,
+    SEXO = q1,
+    EDAD = q2,
+    IDEOLOGIA = l1,
+    VICTIMA = vic1ext,
+    RELIGION = q3c
+  )
+```
+
+```{r}
+lapop2014 <- lapop2014 %>%
+  mutate(
+    ANO = 2014
+  )
+```
+
+## LAPOP 2018-2019
+```{r}
+lapop2019 <- lapop2019 %>%
+  select(uniq_id, aoj22, q1, q2, l1, vic1ext, q3cn)
+```
+
+```{r}
+lapop2019 <- lapop2019 %>%
+  rename(
+    ID = uniq_id,
+    PUNITIVO = aoj22,
+    SEXO = q1,
+    EDAD = q2,
+    IDEOLOGIA = l1,
+    VICTIMA = vic1ext,
+    RELIGION = q3cn
+  )
+```
+
+```{r}
+lapop2019 <- lapop2019 %>%
+  mutate(
+    ANO = 2019
+  )
+```
+
+# 4. Apilamos la data
+
+```{r message=FALSE, warning=FALSE}
+lapop <- bind_rows(lapop2014, lapop2019)
+```
+
+# 5. Editamos la data apilada
+
+```{r}
+lapop_total <- lapop %>%
+  mutate(
+    # --- PUNITIVO: conservar 1 y 2; 0->1 y 1->2; otros (3, 88, 98, etc.) a NA
+    PUNITIVO = case_when(
+      PUNITIVO == 0 ~ 1,
+      PUNITIVO == 1 ~ 2,
+      PUNITIVO %in% c(1, 2) ~ PUNITIVO,
+      TRUE ~ NA_real_
+    ),
+
+    # --- SEXO: 0 = mujer, 1 = hombre (si viniera 1/2, lo mapeamos a 1/0)
+    SEXO = case_when(
+      SEXO %in% c(0, 1) ~ as.numeric(SEXO),
+      SEXO == 1 ~ 1,       # hombre
+      SEXO == 2 ~ 0,       # mujer
+      TRUE ~ NA_real_
+    ),
+
+    # --- VICTIMA: 1 = Sí, 2 = No  ->  1 = Sí, 0 = No
+    VICTIMA = case_when(
+      VICTIMA == 1 ~ 1,
+      VICTIMA == 2 ~ 0,
+      TRUE ~ NA_real_
+    ),
+
+    # --- RELIGION: conservar solo estos códigos
+    RELIGION = ifelse(RELIGION %in% c(1,2,3,4,5,6,7,10,11,12), RELIGION, NA_real_),
+
+    # --- Numéricas
+    EDAD = suppressWarnings(as.numeric(EDAD)),
+    IDEOLOGIA = suppressWarnings(as.numeric(IDEOLOGIA)),
+
+    # --- Año categórico
+    ANO = factor(ANO, levels = c(2014, 2019))
+  ) %>%
+  # Convertimos a factor con etiquetas numéricas (p. ej., niveles "0","1","2"...)
+  mutate(
+    PUNITIVO = factor(PUNITIVO, levels = c(1, 2)),
+    SEXO     = factor(SEXO,     levels = c(0, 1)),
+    VICTIMA  = factor(VICTIMA,  levels = c(0, 1)),
+    RELIGION = factor(RELIGION, levels = c(1,2,3,4,5,6,7,10,11,12))
+  )
+```
+
+```{r}
+# --- eliminamos NAS
+
+lapop_total <- lapop_total %>%
+  filter(!is.na(PUNITIVO), !is.na(SEXO), !is.na(EDAD),
+         !is.na(IDEOLOGIA), !is.na(VICTIMA), !is.na(RELIGION), !is.na(ANO))
+```
+
+# 6. Descargamos la data limpia
+
+```{r}
+# --- csv
+
+write.csv(lapop_total, "lapop_total.csv", row.names = FALSE)
+
+# --- excel
+
+write.xlsx(lapop_total, "lapop_total.xlsx", rowNames = FALSE)
+
+```
+
+
