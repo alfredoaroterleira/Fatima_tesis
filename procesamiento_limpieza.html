@@ -7,7 +7,7 @@
 
         <meta name="author" content="Alfredo Aro Terleira" />
     
-        <meta name="date" content="2025-09-04" />
+        <meta name="date" content="2025-09-05" />
     
     <title>Procesamiento y limpieza de data</title>
 
@@ -1539,7 +1539,7 @@ margin-left: 0 !important;
           <li class="divider"></li>
                                 <li><span><i class="glyphicon glyphicon-user"></i> Alfredo
 Aro Terleira</span></li>
-                                         <li><span><i class="glyphicon glyphicon-calendar"></i> 2025-09-04</span></li>
+                                         <li><span><i class="glyphicon glyphicon-calendar"></i> 2025-09-05</span></li>
                   </ul>     
       </div>
       <div class="book-body fixed">
@@ -1564,12 +1564,14 @@ Aro Terleira</span></li>
 <h1>1. Instalación de paquetes</h1>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co">#install.packages(&quot;haven&quot;)</span></span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="co">#install.packages(&quot;dplyr&quot;)</span></span>
-<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="co">#install.packages(&quot;openxlsx&quot;)</span></span></code></pre></div>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="co">#install.packages(&quot;openxlsx&quot;)</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="co">#install.packages(&quot;tidyr&quot;)</span></span></code></pre></div>
 <div id="cargamos-los-paquetes" class="section level2">
 <h2>1.1. Cargamos los paquetes</h2>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">library</span>(haven)</span>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="fu">library</span>(openxlsx)</span></code></pre></div>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="fu">library</span>(openxlsx)</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span></code></pre></div>
 </div>
 </div>
 <div id="introducimos-la-data" class="section level1">
@@ -1739,62 +1741,82 @@ Esoterica).<br />
 <div id="editamos-la-data-apilada" class="section level1">
 <h1>5. Editamos la data apilada</h1>
 <div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>lapop_total <span class="ot">&lt;-</span> lapop <span class="sc">%&gt;%</span></span>
-<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>    <span class="co"># --- PUNITIVO: conservar 1 y 2; 0-&gt;1 y 1-&gt;2; otros (3, 88, 98, etc.) a NA</span></span>
-<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>    <span class="at">PUNITIVO =</span> <span class="fu">case_when</span>(</span>
-<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>      PUNITIVO <span class="sc">==</span> <span class="dv">0</span> <span class="sc">~</span> <span class="dv">1</span>,</span>
-<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>      PUNITIVO <span class="sc">==</span> <span class="dv">1</span> <span class="sc">~</span> <span class="dv">2</span>,</span>
-<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a>      PUNITIVO <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>) <span class="sc">~</span> PUNITIVO,</span>
-<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="cn">NA_real_</span></span>
-<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a>    ),</span>
-<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a></span>
-<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a>    <span class="co"># --- SEXO: 0 = mujer, 1 = hombre (si viniera 1/2, lo mapeamos a 1/0)</span></span>
-<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a>    <span class="at">SEXO =</span> <span class="fu">case_when</span>(</span>
-<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a>      SEXO <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>) <span class="sc">~</span> <span class="fu">as.numeric</span>(SEXO),</span>
-<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a>      SEXO <span class="sc">==</span> <span class="dv">1</span> <span class="sc">~</span> <span class="dv">1</span>,       <span class="co"># hombre</span></span>
-<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a>      SEXO <span class="sc">==</span> <span class="dv">2</span> <span class="sc">~</span> <span class="dv">0</span>,       <span class="co"># mujer</span></span>
-<span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="cn">NA_real_</span></span>
-<span id="cb11-17"><a href="#cb11-17" tabindex="-1"></a>    ),</span>
-<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a></span>
-<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a>    <span class="co"># --- VICTIMA: 1 = Sí, 2 = No  -&gt;  1 = Sí, 0 = No</span></span>
-<span id="cb11-20"><a href="#cb11-20" tabindex="-1"></a>    <span class="at">VICTIMA =</span> <span class="fu">case_when</span>(</span>
-<span id="cb11-21"><a href="#cb11-21" tabindex="-1"></a>      VICTIMA <span class="sc">==</span> <span class="dv">1</span> <span class="sc">~</span> <span class="dv">1</span>,</span>
-<span id="cb11-22"><a href="#cb11-22" tabindex="-1"></a>      VICTIMA <span class="sc">==</span> <span class="dv">2</span> <span class="sc">~</span> <span class="dv">0</span>,</span>
-<span id="cb11-23"><a href="#cb11-23" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="cn">NA_real_</span></span>
-<span id="cb11-24"><a href="#cb11-24" tabindex="-1"></a>    ),</span>
-<span id="cb11-25"><a href="#cb11-25" tabindex="-1"></a></span>
-<span id="cb11-26"><a href="#cb11-26" tabindex="-1"></a>    <span class="co"># --- RELIGION: conservar solo estos códigos</span></span>
-<span id="cb11-27"><a href="#cb11-27" tabindex="-1"></a>    <span class="at">RELIGION =</span> <span class="fu">ifelse</span>(RELIGION <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">5</span>,<span class="dv">6</span>,<span class="dv">7</span>,<span class="dv">10</span>,<span class="dv">11</span>,<span class="dv">12</span>), RELIGION, <span class="cn">NA_real_</span>),</span>
-<span id="cb11-28"><a href="#cb11-28" tabindex="-1"></a></span>
-<span id="cb11-29"><a href="#cb11-29" tabindex="-1"></a>    <span class="co"># --- Numéricas</span></span>
-<span id="cb11-30"><a href="#cb11-30" tabindex="-1"></a>    <span class="at">EDAD =</span> <span class="fu">suppressWarnings</span>(<span class="fu">as.numeric</span>(EDAD)),</span>
-<span id="cb11-31"><a href="#cb11-31" tabindex="-1"></a>    <span class="at">IDEOLOGIA =</span> <span class="fu">suppressWarnings</span>(<span class="fu">as.numeric</span>(IDEOLOGIA)),</span>
-<span id="cb11-32"><a href="#cb11-32" tabindex="-1"></a></span>
-<span id="cb11-33"><a href="#cb11-33" tabindex="-1"></a>    <span class="co"># --- Año categórico</span></span>
-<span id="cb11-34"><a href="#cb11-34" tabindex="-1"></a>    <span class="at">ANO =</span> <span class="fu">factor</span>(ANO, <span class="at">levels =</span> <span class="fu">c</span>(<span class="dv">2014</span>, <span class="dv">2019</span>))</span>
-<span id="cb11-35"><a href="#cb11-35" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb11-36"><a href="#cb11-36" tabindex="-1"></a>  <span class="co"># Convertimos a factor con etiquetas numéricas (p. ej., niveles &quot;0&quot;,&quot;1&quot;,&quot;2&quot;...)</span></span>
-<span id="cb11-37"><a href="#cb11-37" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb11-38"><a href="#cb11-38" tabindex="-1"></a>    <span class="at">PUNITIVO =</span> <span class="fu">factor</span>(PUNITIVO, <span class="at">levels =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>)),</span>
-<span id="cb11-39"><a href="#cb11-39" tabindex="-1"></a>    <span class="at">SEXO     =</span> <span class="fu">factor</span>(SEXO,     <span class="at">levels =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)),</span>
-<span id="cb11-40"><a href="#cb11-40" tabindex="-1"></a>    <span class="at">VICTIMA  =</span> <span class="fu">factor</span>(VICTIMA,  <span class="at">levels =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)),</span>
-<span id="cb11-41"><a href="#cb11-41" tabindex="-1"></a>    <span class="at">RELIGION =</span> <span class="fu">factor</span>(RELIGION, <span class="at">levels =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">5</span>,<span class="dv">6</span>,<span class="dv">7</span>,<span class="dv">10</span>,<span class="dv">11</span>,<span class="dv">12</span>))</span>
-<span id="cb11-42"><a href="#cb11-42" tabindex="-1"></a>  )</span></code></pre></div>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="co"># --- eliminamos NAS</span></span>
-<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a></span>
-<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>lapop_total <span class="ot">&lt;-</span> lapop_total <span class="sc">%&gt;%</span></span>
-<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(PUNITIVO), <span class="sc">!</span><span class="fu">is.na</span>(SEXO), <span class="sc">!</span><span class="fu">is.na</span>(EDAD),</span>
-<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>         <span class="sc">!</span><span class="fu">is.na</span>(IDEOLOGIA), <span class="sc">!</span><span class="fu">is.na</span>(VICTIMA), <span class="sc">!</span><span class="fu">is.na</span>(RELIGION), <span class="sc">!</span><span class="fu">is.na</span>(ANO))</span></code></pre></div>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>  <span class="co"># 1) Nos quedamos con las columnas necesarias</span></span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>  <span class="fu">select</span>(ID, PUNITIVO, SEXO, EDAD, IDEOLOGIA, VICTIMA, RELIGION, ANO) <span class="sc">%&gt;%</span></span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>  </span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>  <span class="co"># 2) Convertimos haven_labelled -&gt; numeric (códigos)</span></span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a>    <span class="at">PUNITIVO_num =</span> <span class="fu">as.numeric</span>(PUNITIVO),</span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>    <span class="at">SEXO_num     =</span> <span class="fu">as.numeric</span>(SEXO),</span>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a>    <span class="at">VICTIMA_num  =</span> <span class="fu">as.numeric</span>(VICTIMA),</span>
+<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a>    <span class="at">RELIGION_num =</span> <span class="fu">as.numeric</span>(RELIGION),</span>
+<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a>    <span class="at">IDEOLOGIA    =</span> <span class="fu">as.numeric</span>(IDEOLOGIA)  <span class="co"># la mantenemos numérica, solo quitamos la clase &#39;labelled&#39;</span></span>
+<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a>  </span>
+<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a>  <span class="co"># 3) Aplicar filtros con los códigos numéricos</span></span>
+<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a>  <span class="fu">filter</span>(</span>
+<span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a>    PUNITIVO_num <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>),</span>
+<span id="cb11-17"><a href="#cb11-17" tabindex="-1"></a>    VICTIMA_num  <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>),</span>
+<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a>    RELIGION_num <span class="sc">%in%</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">5</span>, <span class="dv">6</span>, <span class="dv">7</span>, <span class="dv">10</span>, <span class="dv">11</span>, <span class="dv">12</span>)</span>
+<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb11-20"><a href="#cb11-20" tabindex="-1"></a>  </span>
+<span id="cb11-21"><a href="#cb11-21" tabindex="-1"></a>  <span class="co"># 4) Recodificaciones y construcción final</span></span>
+<span id="cb11-22"><a href="#cb11-22" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb11-23"><a href="#cb11-23" tabindex="-1"></a>    <span class="co"># Binarias a 0/1 según tu regla</span></span>
+<span id="cb11-24"><a href="#cb11-24" tabindex="-1"></a>    <span class="at">PUNITIVO_bin =</span> <span class="fu">if_else</span>(PUNITIVO_num <span class="sc">==</span> <span class="dv">1</span>, <span class="dv">0</span><span class="dt">L</span>,</span>
+<span id="cb11-25"><a href="#cb11-25" tabindex="-1"></a>                    <span class="fu">if_else</span>(PUNITIVO_num <span class="sc">==</span> <span class="dv">2</span>, <span class="dv">1</span><span class="dt">L</span>, <span class="cn">NA_integer_</span>)),</span>
+<span id="cb11-26"><a href="#cb11-26" tabindex="-1"></a>    <span class="at">SEXO_bin     =</span> <span class="fu">if_else</span>(SEXO_num <span class="sc">==</span> <span class="dv">2</span>, <span class="dv">0</span><span class="dt">L</span>,</span>
+<span id="cb11-27"><a href="#cb11-27" tabindex="-1"></a>                    <span class="fu">if_else</span>(SEXO_num <span class="sc">==</span> <span class="dv">1</span>, <span class="dv">1</span><span class="dt">L</span>, <span class="cn">NA_integer_</span>)),</span>
+<span id="cb11-28"><a href="#cb11-28" tabindex="-1"></a>    <span class="at">VICTIMA_bin  =</span> <span class="fu">if_else</span>(VICTIMA_num <span class="sc">==</span> <span class="dv">1</span>, <span class="dv">1</span><span class="dt">L</span>,</span>
+<span id="cb11-29"><a href="#cb11-29" tabindex="-1"></a>                    <span class="fu">if_else</span>(VICTIMA_num <span class="sc">==</span> <span class="dv">2</span>, <span class="dv">0</span><span class="dt">L</span>, <span class="cn">NA_integer_</span>)),</span>
+<span id="cb11-30"><a href="#cb11-30" tabindex="-1"></a></span>
+<span id="cb11-31"><a href="#cb11-31" tabindex="-1"></a>    <span class="co"># Reindexar RELIGION (10-&gt;8, 11-&gt;9, 12-&gt;10)</span></span>
+<span id="cb11-32"><a href="#cb11-32" tabindex="-1"></a>    <span class="at">RELIGION_reindex =</span> dplyr<span class="sc">::</span><span class="fu">case_match</span>(</span>
+<span id="cb11-33"><a href="#cb11-33" tabindex="-1"></a>      RELIGION_num,</span>
+<span id="cb11-34"><a href="#cb11-34" tabindex="-1"></a>      <span class="dv">1</span>  <span class="sc">~</span> <span class="dv">1</span><span class="dt">L</span>,  <span class="dv">2</span> <span class="sc">~</span> <span class="dv">2</span><span class="dt">L</span>,  <span class="dv">3</span> <span class="sc">~</span> <span class="dv">3</span><span class="dt">L</span>,  <span class="dv">4</span> <span class="sc">~</span> <span class="dv">4</span><span class="dt">L</span>,  <span class="dv">5</span> <span class="sc">~</span> <span class="dv">5</span><span class="dt">L</span>,</span>
+<span id="cb11-35"><a href="#cb11-35" tabindex="-1"></a>      <span class="dv">6</span>  <span class="sc">~</span> <span class="dv">6</span><span class="dt">L</span>,  <span class="dv">7</span> <span class="sc">~</span> <span class="dv">7</span><span class="dt">L</span>,</span>
+<span id="cb11-36"><a href="#cb11-36" tabindex="-1"></a>      <span class="dv">10</span> <span class="sc">~</span> <span class="dv">8</span><span class="dt">L</span>,  <span class="dv">11</span> <span class="sc">~</span> <span class="dv">9</span><span class="dt">L</span>, <span class="dv">12</span> <span class="sc">~</span> <span class="dv">10</span><span class="dt">L</span>,</span>
+<span id="cb11-37"><a href="#cb11-37" tabindex="-1"></a>      <span class="at">.default =</span> <span class="cn">NA_integer_</span></span>
+<span id="cb11-38"><a href="#cb11-38" tabindex="-1"></a>    ),</span>
+<span id="cb11-39"><a href="#cb11-39" tabindex="-1"></a></span>
+<span id="cb11-40"><a href="#cb11-40" tabindex="-1"></a>    <span class="co"># Convertimos a factores categóricos (mostrando números)</span></span>
+<span id="cb11-41"><a href="#cb11-41" tabindex="-1"></a>    <span class="at">PUNITIVO =</span> <span class="fu">factor</span>(PUNITIVO_bin, <span class="at">levels =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">&quot;0&quot;</span>, <span class="st">&quot;1&quot;</span>)),</span>
+<span id="cb11-42"><a href="#cb11-42" tabindex="-1"></a>    <span class="at">SEXO     =</span> <span class="fu">factor</span>(SEXO_bin,     <span class="at">levels =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">&quot;0&quot;</span>, <span class="st">&quot;1&quot;</span>)),</span>
+<span id="cb11-43"><a href="#cb11-43" tabindex="-1"></a>    <span class="at">VICTIMA  =</span> <span class="fu">factor</span>(VICTIMA_bin,  <span class="at">levels =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">&quot;0&quot;</span>, <span class="st">&quot;1&quot;</span>)),</span>
+<span id="cb11-44"><a href="#cb11-44" tabindex="-1"></a></span>
+<span id="cb11-45"><a href="#cb11-45" tabindex="-1"></a>    <span class="co"># RELIGION: factor categórico ordenado con etiquetas numéricas 1..10 (sin saltos)</span></span>
+<span id="cb11-46"><a href="#cb11-46" tabindex="-1"></a>    <span class="at">RELIGION =</span> <span class="fu">factor</span>(</span>
+<span id="cb11-47"><a href="#cb11-47" tabindex="-1"></a>      RELIGION_reindex,</span>
+<span id="cb11-48"><a href="#cb11-48" tabindex="-1"></a>      <span class="at">levels =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>,</span>
+<span id="cb11-49"><a href="#cb11-49" tabindex="-1"></a>      <span class="at">labels =</span> <span class="fu">as.character</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>),</span>
+<span id="cb11-50"><a href="#cb11-50" tabindex="-1"></a>      <span class="at">ordered =</span> <span class="cn">TRUE</span></span>
+<span id="cb11-51"><a href="#cb11-51" tabindex="-1"></a>    )</span>
+<span id="cb11-52"><a href="#cb11-52" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb11-53"><a href="#cb11-53" tabindex="-1"></a>  </span>
+<span id="cb11-54"><a href="#cb11-54" tabindex="-1"></a>  <span class="co"># 5) Dejamos solo las columnas finales con los nombres originales pedidos</span></span>
+<span id="cb11-55"><a href="#cb11-55" tabindex="-1"></a>  <span class="fu">transmute</span>(</span>
+<span id="cb11-56"><a href="#cb11-56" tabindex="-1"></a>    ID,</span>
+<span id="cb11-57"><a href="#cb11-57" tabindex="-1"></a>    PUNITIVO,</span>
+<span id="cb11-58"><a href="#cb11-58" tabindex="-1"></a>    SEXO,</span>
+<span id="cb11-59"><a href="#cb11-59" tabindex="-1"></a>    EDAD,</span>
+<span id="cb11-60"><a href="#cb11-60" tabindex="-1"></a>    IDEOLOGIA,   <span class="co"># se mantiene numérica</span></span>
+<span id="cb11-61"><a href="#cb11-61" tabindex="-1"></a>    VICTIMA,</span>
+<span id="cb11-62"><a href="#cb11-62" tabindex="-1"></a>    RELIGION,</span>
+<span id="cb11-63"><a href="#cb11-63" tabindex="-1"></a>    ANO</span>
+<span id="cb11-64"><a href="#cb11-64" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb11-65"><a href="#cb11-65" tabindex="-1"></a>  </span>
+<span id="cb11-66"><a href="#cb11-66" tabindex="-1"></a>  <span class="co"># 6) Eliminar NAs</span></span>
+<span id="cb11-67"><a href="#cb11-67" tabindex="-1"></a>  <span class="fu">drop_na</span>(ID, PUNITIVO, SEXO, EDAD, IDEOLOGIA, VICTIMA, RELIGION, ANO)</span></code></pre></div>
 </div>
 <div id="descargamos-la-data-limpia" class="section level1">
 <h1>6. Descargamos la data limpia</h1>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="co"># --- csv</span></span>
-<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a></span>
-<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a><span class="fu">write.csv</span>(lapop_total, <span class="st">&quot;lapop_total.csv&quot;</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a></span>
-<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a><span class="co"># --- excel</span></span>
-<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a></span>
-<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a><span class="fu">write.xlsx</span>(lapop_total, <span class="st">&quot;lapop_total.xlsx&quot;</span>, <span class="at">rowNames =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="co"># --- csv</span></span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a><span class="fu">write.csv</span>(lapop_total, <span class="st">&quot;lapop_total.csv&quot;</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a></span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a><span class="co"># --- excel</span></span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a></span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a><span class="fu">write.xlsx</span>(lapop_total, <span class="st">&quot;lapop_total.xlsx&quot;</span>, <span class="at">rowNames =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
 </div>
 
    

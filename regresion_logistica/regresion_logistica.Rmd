@@ -1,0 +1,30 @@
+---
+title: "Regresión Logística: Populismo Punitivo"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::robobook:
+    highlight: kate
+---
+# 1. Introducción de la data
+
+```{r}
+lapop_total <- read.csv("https://raw.githubusercontent.com/alfredoaroterleira/Fatima_tesis/refs/heads/main/lapop_total.csv")
+```
+
+La siguiente data ha sido tomado de LAPOP2014 y LAPOP2018-2019. A continuación, detallaremos las variables que se utilizarán en el análisis:
+
+- **ID**: Código único de cada personas encuestado.
+- **PUNITIVO**: ¿En su opinión, qué hay que hacer para reducir la criminalidad en un país como el nuestro: implementar medidas de prevención o aumentar los castigos a los delincuentes?
+    - 
+- **SEXO**: Sexo del encuestado
+- **EDAD**: Edad del encuestado
+- **IDEOLOGIA**: Ideología política del encuestado
+- **VICTIMA**: ¿Ha sido usted víctima de algún delito en los últimos 12 meses?
+- **RELIGION**: Religión del encuestado
+- **ANO**: Año de la encuesta
+
+# 2. Estructura de la data
+```{r}
+str(lapop_total)
+```
+
